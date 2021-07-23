@@ -2,11 +2,7 @@
 #include "./include/Builtin.h"
 
 
-<<<<<<< HEAD
-int Check_Alloc_Status(char *Buf){ 
-=======
 int Check_Alloc_Status(char *Buf){// check if memory allocation was successfull
->>>>>>> b5ca2dc6bcfe90ca32838b73227929be6d535228
     if(Buf == NULL){
         fprintf(stderr,"LShell: Allocation Error\n");
         exit(EXIT_FAILURE);
