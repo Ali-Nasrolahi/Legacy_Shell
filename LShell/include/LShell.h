@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/types.h>
 
 #define RL_BUFSIZE 1024
 #define TOk_BUFSIZE 64

@@ -1,7 +1,6 @@
 #include "./include/LShell.h"
 #include "./include/Builtin.h"
 
-
 int Check_Alloc_Status(char *Buf){// check if memory Allocation was successfull
     if(Buf == NULL){
         fprintf(stderr,"LShell: Allocation Error\n");
@@ -11,10 +10,14 @@ int Check_Alloc_Status(char *Buf){// check if memory Allocation was successfull
 
 }
 
+
 int main(){
     LShell();
     return EXIT_SUCCESS;
 }
+
+// LShell Segments are include <Read line, Parse, Execute, Launch and Shell starter>
+// Followed by Builtin Functions <LSH_Help, CD, Exit> 
 
 void LShell(void){
     char *line;
@@ -22,7 +25,7 @@ void LShell(void){
     int Status;
 
     do {
-        printf("~ ");
+        printf(">>! ");
         line = ReadLine();
         args = Parsing(line);
         Status = Execute(args);
@@ -31,9 +34,9 @@ void LShell(void){
         free(args);
     } while(Status);
 }
-/*char *ReadLine(void){
+/*char *ReadLine(void){ // getchar impelemntion
     int Buffer_Size = RL_BUFSIZE;
-    int Postion = 0;
+    int Position = 0;
     char *Buffer = malloc(sizeof(char) * Buffer_Size);
     int chr;
 
@@ -42,50 +45,52 @@ void LShell(void){
     while(1){
        chr = getchar();
         
-        if(chr == EOF || chr == '\n'){
-            Buffer[Postion++] = EOF;
-            return Buffer;
+        if(chr == EOF)
+            exit(EXIT_SUCCESS);
+        else if(chr == '\n'){
+            Buffer[Position] = '\0'; 
+            return Buffer; 
         }
         else
-            Buffer[Postion++] = chr;
+            Buffer[Position] = chr;
+        Position++;
+
+        if(Position >= Buffer_Size){
+            Buffer_Size += RL_BUFSIZE;
+            Buffer  = realloc(Buffer, RL_BUFSIZE);
+            Check_Alloc_Status(Buffer);
+        }
     }
-    if(Postion >= Buffer_Size){
-        Buffer_Size += RL_BUFSIZE;
-        Buffer  = realloc(Buffer, RL_BUFSIZE);
-    }
-    Check_Alloc_Status(Buffer);
 }*/
-char *ReadLine(void){
+char *ReadLine(void){ // getline impelmention 
     char *str = NULL;
     ssize_t bufsize = 0;
-    if(getline(&str ,&bufsize, stdin) == -1)
-        if(feof(stdin))
-            exit(EXIT_SUCCESS);
-        else{
-            perror("Read Line");
-            exit(EXIT_FAILURE);
-        }
-        return str;
+    getline(&str, &bufsize, stdin);
+    return str;
 }
-char **Parsing(char *Line){
+char **Parsing(char *Line){ // Parse the arguments
 
-    size_t buffsize = TOk_BUFSIZE, position = 0;
+    int buffsize = TOk_BUFSIZE, position = 0;
     char **tokens = malloc( buffsize * sizeof (char*));
-    char  *token;
+    char  *token ,**tokens_backup;
+
     if (!tokens) {
         fprintf(stderr, "LSH: allocation error\n");
         exit(EXIT_FAILURE);
-      }
+    }
+
     token = strtok(Line, TOK_DELIM);
 
-    while (!token){
+    while (token){
         tokens[position] = token;
         position++;
 
         if(position >= buffsize){
             buffsize += TOk_BUFSIZE;
+            tokens_backup = tokens;
             tokens = realloc(tokens, buffsize * sizeof(char *));
             if (!tokens) {
+                free(tokens_backup);
                 fprintf(stderr, "LSH: allocation error\n");
                 exit(EXIT_FAILURE);
             }
@@ -95,22 +100,36 @@ char **Parsing(char *Line){
     tokens[position] = NULL;
     return tokens;
 }
-int Launch(char **args){
-    pid_t pid, wpid;
+int Launch(char **args){// Start the new Proccess using Fork
+    pid_t pid;
     int Status;
      
-     if(execvp(args[0], args) == -1){
-            perror("LShell");
-        exit(EXIT_FAILURE);
+    pid = fork();
+    if(pid == 0){
+        if(execvp(args[0], args) == -1)
+                perror("LShell");
+
+            exit(EXIT_FAILURE);
     }else if(pid < 0){
         perror("LShell");
     }else{
         do {
-            wpid = waitpid(pid, &Status, WUNTRACED); 
+           waitpid(pid, &Status, WUNTRACED); 
         } while (!WIFEXITED(Status) && !WIFSIGNALED(Status));
     }
     return 1;
 }
+int Execute(char **args){ //Execute terminal input
+    if(args[0] == NULL)
+        return 1;
+    
+    for(int i = 0; i < LSH_num_builtins(); i++)
+        if(strcmp(args[0], builtin_str[i]) == 0)
+            return (*builtin_func[i])(args);
+
+    return Launch(args);
+}
+
 
 
 int LSH_num_builtins(){
@@ -121,7 +140,7 @@ int LSH_cd(char **args){
     if(args[1] == NULL)
         fprintf(stderr, "Expected an Argument: to \"cd\"\n");
     else{
-        if(chdir(args[1]))
+        if(chdir(args[1]) != 0)
             perror("LSHell");
     }
     return 1;
@@ -141,13 +160,5 @@ int LSH_exit(char **args){
     return EXIT_SUCCESS;
 }
 
-int Execute(char **args){
-    if(args[0] == NULL)
-        return 1;
-    
-    for(int i = 0; i < LSH_num_builtins(); i++)
-        if(strcmp(args[0], builtin_str[i]) == 0)
-            return (*builtin_func[i])(args);
 
-    return Launch(args);
-}
+
