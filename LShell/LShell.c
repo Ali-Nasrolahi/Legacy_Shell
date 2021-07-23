@@ -2,7 +2,7 @@
 #include "./include/Builtin.h"
 
 
-int Check_Alloc_Status(char *Buf){
+int Check_Alloc_Status(char *Buf){ 
     if(Buf == NULL){
         fprintf(stderr,"LShell: Allocation Error\n");
         exit(EXIT_FAILURE);
@@ -10,6 +10,7 @@ int Check_Alloc_Status(char *Buf){
     }
 
 }
+
 int main(){
     LShell();
     return EXIT_SUCCESS;
