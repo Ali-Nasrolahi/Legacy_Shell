@@ -7,7 +7,7 @@ int Check_Alloc_Status(char *Buf){// check if memory Allocation was successfull
         exit(EXIT_FAILURE);
         
     }
-
+    exit(EXIT_SUCCESS);
 }
 
 
@@ -64,7 +64,7 @@ void LShell(void){
 }*/
 char *ReadLine(void){ // getline impelmention 
     char *str = NULL;
-    ssize_t bufsize = 0;
+    size_t bufsize = 0;
     getline(&str, &bufsize, stdin);
     return str;
 }
