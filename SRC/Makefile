@@ -2,7 +2,7 @@ CC=clang
 CFLAGS=
 
 Legacy_Shell: LShell.o
-	$(CC) $(CFLAGS)  LShell.o -o $@ 
+	$(CC) $(CFLAGS)  $< -o $@ 
 
 LShell.o: LShell.c
 	$(CC) $(CFLAGS) -c LShell.c
