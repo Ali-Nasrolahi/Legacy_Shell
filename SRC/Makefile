@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=
+CFLAGS= -g -Wall
 
 Legacy_Shell: LShell.o
 	$(CC) $(CFLAGS)  $< -o $@ 
